@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: notification
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: tripply
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: saniyakumawat1703@gmail.com
+    password: skbg gcxw ozjz nbyd
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+server:
+  port: 8087
+  servlet:
+    context-path: /notification

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Tripply - Tripply makes vacation easy!</title>
+    <style>
+        html,
+        body {
+            font-family: "Helvetica", sans-serif;
+            color: #101319;
+            background-color: #FEFBFF !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #FCF4FF;
+            border-radius: 20px;
+            text-align: center;
+            padding: 3rem 1.5rem 4.5rem;
+        }
+
+        .welcome {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-top: 3rem;
+        }
+
+        .welcomeText {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 2rem;
+            margin: 3rem 0;
+            text-align: center;
+            padding: 0 3rem;
+        }
+
+        .welcomeMessage {
+            font-size: 1.125rem;
+            font-weight: 500;
+            line-height: 1.5rem;
+            margin: 3rem 0;
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .signInButton {
+            border-radius: 0.5rem;
+            background-color: #8000C5;
+            box-shadow: 0px 2px 3px 0px rgba(3, 59, 105, 0.10);
+            width: 60%;
+            padding: 8px 16px;
+            color: #fff;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+        }
+
+        .footerContent {
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .noDecoration {
+            text-decoration: none;
+            margin: 0 20px;
+        }
+
+        .additionalLinks, .additionalLinksTwitter {
+            width: 24px;
+            height: 24px;
+        }
+
+        .footerLink {
+            color: #10494C;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5rem;
+            margin: 0 15px;
+        }
+
+        .copyRights {
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5rem;
+            margin-top: 1.5rem;
+            color: #101319;
+        }
+    </style>
+</head>
+
+<body>
+<div class="content">
+    <p class="welcome">Welcome to Tripply!</p>
+    <p class="welcomeText">
+        You have been invited to register a hotel with our travel application.
+        Please click the link below to complete the registration process.&nbsp;&nbsp;🎉
+    </p>
+    <p class="welcomeMessage" th:text="${sentToName} + ' has sent you an invite to onboard your hotel.'"></p>
+    <a th:href="${invitationLink}" target="_blank" class="noDecoration">
+        <button class="signInButton"> Set Your Password </button>
+    </a>
+</div>
+</body>
+
+</html>
