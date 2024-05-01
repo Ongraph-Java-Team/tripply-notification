@@ -2,11 +2,15 @@ package com.notification.service.impl;
 
 import com.notification.document.InvitationDetails;
 import com.notification.helper.EmailSenderHelper;
+import com.notification.model.HotelRequestBean;
 import com.notification.model.ResponseModel;
+import com.notification.model.Status;
 import com.notification.model.request.InviteRequest;
+import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.repo.InvitationDetailsRepo;
 import com.notification.service.NotificationService;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,6 +21,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static com.notification.constant.NotificationConstant.INVITATION_LINK;
 import static com.notification.constant.NotificationConstant.INVITATION_SUBJECT;
@@ -49,6 +54,31 @@ public class NotificationServiceImpl implements NotificationService {
         return response;
     }
 
+    @Override
+    public ResponseModel<InvitationDetailResponse> getInvitationById(ObjectId invitationId) {
+        ResponseModel<InvitationDetailResponse> response = new ResponseModel<>();
+        Optional<InvitationDetails> invitationDetails = invitationDetailsRepo.findById(invitationId);
+        if (invitationDetails.isPresent()) {
+            InvitationDetails details = invitationDetails.get();
+
+            InvitationDetailResponse invitationDetailResponse = new InvitationDetailResponse();
+            invitationDetailResponse.setInvitationId(details.getId().toString());
+            invitationDetailResponse.setSentToEmail(details.getSentToEmail());
+            invitationDetailResponse.setCategory(details.getCategory());
+            invitationDetailResponse.setStatus(details.getStatus());
+            invitationDetailResponse.setSendToName(details.getSendToName());
+            invitationDetailResponse.setHotelRequest(details.getHotelRequest());
+
+            response.setStatus(HttpStatus.OK);
+            response.setData(invitationDetailResponse);
+            response.setMessage("Invitation details fetched successfully.");
+        } else {
+            response.setStatus(HttpStatus.NOT_FOUND);
+            response.setMessage("Invitation not found");
+        }
+        return response;
+    }
+
     public InvitationDetails sendHotelEmail(InviteRequest inviteRequest) {
         InvitationDetails invitationDetails = new InvitationDetails();
         invitationDetails.setCategory(inviteRequest.getCategory().name());
@@ -57,6 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
         invitationDetails.setHotelRequest(inviteRequest.getHotelRequestBean());
         invitationDetails.setCreatedOn(LocalDateTime.now());
         invitationDetails.setCreatedBy("Super Admin");
+        invitationDetails.setStatus(Status.PENDING);
         InvitationDetails savedInvitation = invitationDetailsRepo.save(invitationDetails);
         try {
 
