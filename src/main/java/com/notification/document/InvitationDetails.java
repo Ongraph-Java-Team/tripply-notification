@@ -1,6 +1,7 @@
 package com.notification.document;
 
 import com.notification.model.HotelRequestBean;
+import com.notification.model.Status;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -15,6 +16,8 @@ public class InvitationDetails extends BaseDocument {
     private String sentToEmail;
     @Field("category")
     private String category;
+    @Field("status")
+    private Status status;
     @Field("sent_to_name")
     private String sendToName;
     @Field("title")
