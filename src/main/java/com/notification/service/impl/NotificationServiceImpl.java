@@ -2,7 +2,6 @@ package com.notification.service.impl;
 
 import com.notification.document.InvitationDetails;
 import com.notification.helper.EmailSenderHelper;
-import com.notification.model.HotelRequestBean;
 import com.notification.model.ResponseModel;
 import com.notification.model.Status;
 import com.notification.model.request.InviteRequest;
@@ -13,6 +12,7 @@ import com.notification.service.NotificationService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -21,7 +21,9 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.notification.constant.NotificationConstant.INVITATION_LINK;
 import static com.notification.constant.NotificationConstant.INVITATION_SUBJECT;
@@ -46,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
         ResponseModel<InviteResponse> response = new ResponseModel<>();
         InviteResponse inviteResponse = new InviteResponse();
         inviteResponse.setInvitationId(invitationDetails.getId().toString());
-        inviteResponse.setEmail(invitationDetails.getSentToEmail());
+        inviteResponse.setSendToEmail(invitationDetails.getSentToEmail());
         inviteResponse.setName(invitationDetails.getSendToName());
         response.setStatus(HttpStatus.CREATED);
         response.setMessage("Invitation details added successfully.");
@@ -77,6 +79,34 @@ public class NotificationServiceImpl implements NotificationService {
             response.setMessage("Invitation not found");
         }
         return response;
+    }
+
+    @Override
+    public Page<InviteResponse> getAllPendingInvitations(
+            String category, String status, int pageNo, int pageSize, String sortBy) {
+        try {
+            Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy)); // Adjust for 0-based indexing
+            Page<InvitationDetails> detailsPage = invitationDetailsRepo.findAllByCategory(pageable, category);
+            List<InviteResponse> response = detailsPage.getContent().stream()
+                    .map(this::mapToInviteResponse)
+                    .toList();
+            return new PageImpl<>(response, pageable, detailsPage.getSize());
+        } catch (Exception e) {
+            throw new RuntimeException(String.valueOf(HttpStatus.NOT_FOUND));
+        }
+    }
+
+    public InviteResponse mapToInviteResponse(InvitationDetails invitationDetails) {
+        InviteResponse inviteResponse = new InviteResponse();
+        inviteResponse.setSendToEmail(invitationDetails.getSentToEmail());
+        inviteResponse.setInvitationId(invitationDetails.getId().toString());
+        inviteResponse.setName(invitationDetails.getHotelRequest().getName());
+        inviteResponse.setAdminFullName(invitationDetails.getSendToName());
+        inviteResponse.setPhoneNumber(String.join(
+                invitationDetails.getHotelRequest().getManagerDetails().getCountryCode(),
+                invitationDetails.getHotelRequest().getManagerDetails().getPhoneNumber()
+        ));
+        return inviteResponse;
     }
 
     public InvitationDetails sendHotelEmail(InviteRequest inviteRequest) {
