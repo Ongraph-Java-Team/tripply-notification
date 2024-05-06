@@ -2,6 +2,7 @@ package com.notification.controller;
 
 import com.notification.model.ResponseModel;
 import com.notification.model.request.InviteRequest;
+import com.notification.model.response.CustomInvitationResponse;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.service.NotificationService;
@@ -36,7 +37,7 @@ public class NotificationController {
     }
 
     @GetMapping("/invitee/{category}")
-    public Page<InviteResponse> getAllPendingInvitations(
+    public CustomInvitationResponse getAllPendingInvitations(
             @PathVariable("category") String category,
             @RequestParam(name = "status", required = false, defaultValue = "PENDING") String status,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
@@ -44,8 +45,8 @@ public class NotificationController {
             @RequestParam(name = "sortBy", required = false, defaultValue = "createdOn") String sortBy) {
         log.info("Fetching pending invitations for category: {}, status: {}, page: {}, size: {}, sort by: {}",
                 category, status, pageNo, pageSize, sortBy);
-        Page<InviteResponse> response = notificationService.getAllPendingInvitations(category, status, pageNo, pageSize, sortBy);
-        log.info("Fetched {} pending invitations.", response.getTotalElements());
+       CustomInvitationResponse response = notificationService.getAllPendingInvitations(category, status, pageNo, pageSize, sortBy);
+        log.info("Fetched {} pending invitations.", response.getTotalItems());
         return response;
     }
 }
