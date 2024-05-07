@@ -8,4 +8,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface InvitationDetailsRepo extends MongoRepository<InvitationDetails, ObjectId> {
     Page<InvitationDetails> findAllByCategory(Pageable pageable, String category);
+    boolean existsBySentToEmail(String email);
 }

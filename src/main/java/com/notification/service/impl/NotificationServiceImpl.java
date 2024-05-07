@@ -2,6 +2,7 @@ package com.notification.service.impl;
 
 import com.notification.document.InvitationDetails;
 import com.notification.exception.BadRequestException;
+import com.notification.exception.CustomErrorResponse;
 import com.notification.exception.CustomExceptionHandler;
 import com.notification.exception.DataNotFoundException;
 import com.notification.helper.EmailSenderHelper;
@@ -124,6 +125,13 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	public InvitationDetails sendHotelEmail(InviteRequest inviteRequest) {
+		boolean emailExists = invitationDetailsRepo.existsBySentToEmail(inviteRequest.getSentToEmail());
+		String errorMessage ="This Email "+inviteRequest.getCategory() + "Service Already Exists";
+		if (emailExists) {
+			// If the email already exists, return null or throw an exception as per your
+			throw new BadRequestException(errorMessage);
+		}
+
 		InvitationDetails invitationDetails = new InvitationDetails();
 		invitationDetails.setCategory(inviteRequest.getCategory().name());
 		invitationDetails.setSendToName(inviteRequest.getSendToName());
@@ -132,31 +140,31 @@ public class NotificationServiceImpl implements NotificationService {
 		invitationDetails.setCreatedOn(LocalDateTime.now());
 		invitationDetails.setCreatedBy("Super Admin");
 		invitationDetails.setStatus(Status.PENDING);
-		InvitationDetails savedInvitation = invitationDetailsRepo.save(invitationDetails);
-		try {
 
+		InvitationDetails savedInvitation = null;
+		try {
+			// Save the invitation details
+			savedInvitation = invitationDetailsRepo.save(invitationDetails);
+
+			// Prepare email content
 			Context thymeleafContext = new Context();
 			thymeleafContext.setVariable("sentToName", inviteRequest.getSendToName());
 			thymeleafContext.setVariable("invitationLink", INVITATION_LINK);
-
 			String emailContent = templateEngine.process("HotelEmailTemplate", thymeleafContext);
 
-			TemplateEngine templateEngine1 = new SpringTemplateEngine();
-			StringTemplateResolver resolver = new StringTemplateResolver();
-			resolver.setTemplateMode(emailContent);
-			templateEngine1.setTemplateResolver(resolver);
-
-			String content = templateEngine1.process(emailContent, thymeleafContext);
-
-			String therapistEmail = inviteRequest.getSentToEmail();
-			emailSenderHelper.sendEmail(therapistEmail, INVITATION_SUBJECT, content);
+			// Update invitation details with email information
 			savedInvitation.setMessage(emailContent);
 			savedInvitation.setInvitationUrl(INVITATION_LINK);
 			savedInvitation.setTitle(INVITATION_SUBJECT);
 			savedInvitation = invitationDetailsRepo.save(savedInvitation);
+
+			// Send the email
+			String therapistEmail = inviteRequest.getSentToEmail();
+			emailSenderHelper.sendEmail(therapistEmail, INVITATION_SUBJECT, emailContent);
 		} catch (Exception e) {
-			throw new BadRequestException();
+			throw new BadRequestException(errorMessage);
 		}
+
 		return savedInvitation;
 	}
 }

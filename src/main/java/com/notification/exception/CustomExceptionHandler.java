@@ -16,7 +16,7 @@ public class CustomExceptionHandler {
 	    public ResponseEntity<Object> handleCustomException(BadRequestException ex) {
 	        CustomErrorResponse errorResponse = new CustomErrorResponse();
 	        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-	        errorResponse.setMessage("Hotel Already Invited"); 
+	        errorResponse.setMessage(ex.getMessage());
 	        logger.error("BadRequest Exception Occured:-{} ", errorResponse.getMessage());
 	        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 	    }
