@@ -38,7 +38,7 @@ public class NotificationController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/invite/check-invitation/{sentToEmail}")
+    @GetMapping("/check-invitation/{sentToEmail}")
     public ResponseEntity<ResponseModel<InvitationDetails>> getInviteById(@PathVariable("sentToEmail") String sentToEmail) {
         log.info("Endpoint: /get invite detail triggered: {}", sentToEmail);
         ResponseModel<InvitationDetails> response = notificationService.getInvitationByEmail(sentToEmail);

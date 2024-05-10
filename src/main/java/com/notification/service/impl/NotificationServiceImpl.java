@@ -90,7 +90,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	public ResponseModel<InvitationDetails> getInvitationByEmail(String sentToEmail) {
 		InvitationDetails invitations =  invitationDetailsRepo.findBySentToEmail(sentToEmail)
-				.orElseThrow(() -> new RecordNotFoundException("Email not sent " + sentToEmail));
+				.orElseThrow(() -> new RecordNotFoundException("Email not sent to " + sentToEmail));
 		ResponseModel<InvitationDetails> response = new ResponseModel<>();
 		response.setData(invitations);
 		response.setMessage("Invitation details retrieved successfully");
