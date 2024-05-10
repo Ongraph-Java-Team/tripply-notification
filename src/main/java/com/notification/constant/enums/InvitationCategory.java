@@ -1,4 +1,4 @@
-package com.notification.constant;
+package com.notification.constant.enums;
 
 public enum InvitationCategory {
 

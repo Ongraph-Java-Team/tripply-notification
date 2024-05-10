@@ -1,6 +1,6 @@
 package com.notification.model.request;
 
-import com.notification.constant.InvitationCategory;
+import com.notification.constant.enums.InvitationCategory;
 import com.notification.model.HotelRequestBean;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
