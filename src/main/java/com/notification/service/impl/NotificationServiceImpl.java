@@ -2,14 +2,11 @@ package com.notification.service.impl;
 
 import com.notification.document.InvitationDetails;
 import com.notification.exception.BadRequestException;
-import com.notification.exception.CustomErrorResponse;
-import com.notification.exception.CustomExceptionHandler;
-import com.notification.exception.DataNotFoundException;
+import com.notification.exception.RecordNotFoundException;
 import com.notification.helper.EmailSenderHelper;
 import com.notification.model.ResponseModel;
 import com.notification.model.Status;
 import com.notification.model.request.InviteRequest;
-import com.notification.model.response.CustomInvitationResponse;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.repo.InvitationDetailsRepo;
@@ -22,12 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static com.notification.constant.NotificationConstant.INVITATION_LINK;
 import static com.notification.constant.NotificationConstant.INVITATION_SUBJECT;
@@ -63,53 +57,45 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	public ResponseModel<InvitationDetailResponse> getInvitationById(ObjectId invitationId) {
 		ResponseModel<InvitationDetailResponse> response = new ResponseModel<>();
-		try {
-			Optional<InvitationDetails> invitationDetails = invitationDetailsRepo.findById(invitationId);
-			if (invitationDetails.isPresent()) {
-				InvitationDetails details = invitationDetails.get();
-
-				InvitationDetailResponse invitationDetailResponse = new InvitationDetailResponse();
-				invitationDetailResponse.setInvitationId(details.getId().toString());
-				invitationDetailResponse.setSentToEmail(details.getSentToEmail());
-				invitationDetailResponse.setCategory(details.getCategory());
-				invitationDetailResponse.setStatus(details.getStatus());
-				invitationDetailResponse.setSendToName(details.getSendToName());
-				invitationDetailResponse.setHotelRequest(details.getHotelRequest());
-
-				response.setStatus(HttpStatus.OK);
-				response.setData(invitationDetailResponse);
-				response.setMessage("Invitation details fetched successfully.");
-			} else {
-				throw new DataNotFoundException();
-			}
-		} catch (Exception e) {
-			throw new DataNotFoundException();
-		}
+		InvitationDetails details = invitationDetailsRepo.findById(invitationId).orElseThrow(
+				() -> new RecordNotFoundException("Invitation details not found for id: "+invitationId)
+		);
+		InvitationDetailResponse invitationDetailResponse = new InvitationDetailResponse();
+		invitationDetailResponse.setInvitationId(details.getId().toString());
+		invitationDetailResponse.setSentToEmail(details.getSentToEmail());
+		invitationDetailResponse.setCategory(details.getCategory());
+		invitationDetailResponse.setStatus(details.getStatus());
+		invitationDetailResponse.setSendToName(details.getSendToName());
+		invitationDetailResponse.setHotelRequest(details.getHotelRequest());
+		response.setStatus(HttpStatus.OK);
+		response.setData(invitationDetailResponse);
+		response.setMessage("Invitation details fetched successfully.");
 		return response;
 	}
 
 	@Override
-	public CustomInvitationResponse getAllPendingInvitations(String category, String status, int pageNo, int pageSize,
+	public ResponseModel<Page<InviteResponse>> getAllPendingInvitations(String category, String status, int pageNo, int pageSize,
 			String sortBy) {
-		try {
-			Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy)); // Adjust for 0-based indexing
-			Page<InvitationDetails> detailsPage = invitationDetailsRepo.findAllByCategory(pageable, category);
-			if (detailsPage.isEmpty()) {
-				throw new DataNotFoundException();
-			}
-			List<InviteResponse> invitations = detailsPage.getContent().stream().map(this::mapToInviteResponse)
-					.toList();
+		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy)); // Adjust for 0-based indexing
+		Page<InvitationDetails> detailsPage = invitationDetailsRepo.findAllByCategory(pageable, category);
+		List<InviteResponse> invitations = detailsPage.getContent().stream().map(this::mapToInviteResponse).toList();
+		Page<InviteResponse> details = new PageImpl<>(invitations, pageable, detailsPage.getTotalElements());
+		ResponseModel<Page<InviteResponse>> response = new ResponseModel<>();
+		response.setMessage("Invitation details retrieved successfully");
+		response.setStatus(HttpStatus.OK);
+		response.setData(details);
+		return response;
+	}
 
-			CustomInvitationResponse response = new CustomInvitationResponse();
-			response.setTotalItems((int) detailsPage.getTotalElements());
-			response.setPageNo(detailsPage.getNumber() + 1); // Adjust for 0-based indexing
-			response.setPageSize(detailsPage.getSize());
-			response.setInvitations(invitations);
-
-			return response;
-		} catch (Exception e) {
-			throw new DataNotFoundException();
-		}
+	@Override
+	public ResponseModel<InvitationDetails> getInvitationByEmail(String sentToEmail) {
+		InvitationDetails invitations =  invitationDetailsRepo.findBySentToEmail(sentToEmail)
+				.orElseThrow(() -> new RecordNotFoundException("Email not sent " + sentToEmail));
+		ResponseModel<InvitationDetails> response = new ResponseModel<>();
+		response.setData(invitations);
+		response.setMessage("Invitation details retrieved successfully");
+		response.setStatus(HttpStatus.OK);
+		return response;
 	}
 
 	public InviteResponse mapToInviteResponse(InvitationDetails invitationDetails) {
@@ -126,12 +112,9 @@ public class NotificationServiceImpl implements NotificationService {
 
 	public InvitationDetails sendHotelEmail(InviteRequest inviteRequest) {
 		boolean emailExists = invitationDetailsRepo.existsBySentToEmail(inviteRequest.getSentToEmail());
-		String errorMessage ="This Email "+inviteRequest.getCategory() + "Service Already Exists";
 		if (emailExists) {
-			// If the email already exists, return null or throw an exception as per your
-			throw new BadRequestException(errorMessage);
+			throw new BadRequestException("This email " + inviteRequest.getSentToEmail() + " already exists in our system.");
 		}
-
 		InvitationDetails invitationDetails = new InvitationDetails();
 		invitationDetails.setCategory(inviteRequest.getCategory().name());
 		invitationDetails.setSendToName(inviteRequest.getSendToName());
@@ -141,28 +124,24 @@ public class NotificationServiceImpl implements NotificationService {
 		invitationDetails.setCreatedBy("Super Admin");
 		invitationDetails.setStatus(Status.PENDING);
 
-		InvitationDetails savedInvitation = null;
+		InvitationDetails savedInvitation;
 		try {
-			// Save the invitation details
 			savedInvitation = invitationDetailsRepo.save(invitationDetails);
 
-			// Prepare email content
 			Context thymeleafContext = new Context();
 			thymeleafContext.setVariable("sentToName", inviteRequest.getSendToName());
 			thymeleafContext.setVariable("invitationLink", INVITATION_LINK);
 			String emailContent = templateEngine.process("HotelEmailTemplate", thymeleafContext);
 
-			// Update invitation details with email information
 			savedInvitation.setMessage(emailContent);
 			savedInvitation.setInvitationUrl(INVITATION_LINK);
 			savedInvitation.setTitle(INVITATION_SUBJECT);
 			savedInvitation = invitationDetailsRepo.save(savedInvitation);
 
-			// Send the email
-			String therapistEmail = inviteRequest.getSentToEmail();
-			emailSenderHelper.sendEmail(therapistEmail, INVITATION_SUBJECT, emailContent);
+			String hotelEmail = inviteRequest.getSentToEmail();
+			emailSenderHelper.sendEmail(hotelEmail, INVITATION_SUBJECT, emailContent);
 		} catch (Exception e) {
-			throw new BadRequestException(errorMessage);
+			throw new BadRequestException("Exception occurred while sending email.");
 		}
 
 		return savedInvitation;
