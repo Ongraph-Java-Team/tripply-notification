@@ -10,6 +10,8 @@ public class HotelRequestBean {
 
     @Field("name")
     private String name;
+    @Field("registrationNumber")
+    private String registrationNumber;
     @Field("address")
     private String address;
     @Field("city")
