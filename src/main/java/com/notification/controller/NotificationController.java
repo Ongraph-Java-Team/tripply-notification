@@ -7,6 +7,7 @@ import com.notification.model.response.CustomInvitationResponse;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.service.NotificationService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService;
 
+    @Operation(summary = "Send Invitation to hotel.",
+            description = "This API will send invitation to hotel and will throw exception if email invitation already exists in the system.")
     @PostMapping(value = "/send-hotel-invite", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseModel<InviteResponse>> sendHotelInvite(@RequestBody InviteRequest inviteRequest) {
         log.info("Endpoint: /send-hotel-invite triggered with user: {}", inviteRequest.getSentToEmail());
@@ -46,6 +49,8 @@ public class NotificationController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get all pending invitations",
+            description = "This API will give all the pending invitations.")
     @GetMapping("/invitee/{category}")
     public ResponseEntity<ResponseModel<Page<InviteResponse>>> getAllPendingInvitations(
             @PathVariable("category") String category,

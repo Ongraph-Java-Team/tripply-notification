@@ -21,3 +21,5 @@ server:
   port: 8087
   servlet:
     context-path: /notification
+
+#swagger-url: http://localhost:8087/notification/swagger-ui/index.html
