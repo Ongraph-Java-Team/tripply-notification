@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class TripplyBookingConfig {
     @Value("${spring.application.version}")
     private String version;
 
+    @Bean
     public OpenAPI defineOpenApi(){
         Server server = new Server();
         server.setUrl(url);
