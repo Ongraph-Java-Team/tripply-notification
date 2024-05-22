@@ -41,6 +41,9 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${spring.mail.username}")
 	private String fromMail;
 
+	@Value("${application.ui.base-url}")
+	private String domainUrl;
+
 	@Override
 	public ResponseModel<InviteResponse> sendHotelInvite(InviteRequest inviteRequest) {
 		InvitationDetails invitationDetails = sendHotelEmail(inviteRequest);
@@ -129,13 +132,15 @@ public class NotificationServiceImpl implements NotificationService {
 		try {
 			savedInvitation = invitationDetailsRepo.save(invitationDetails);
 
+			String invitationLink = String.format(INVITATION_LINK, domainUrl, savedInvitation.getId(), savedInvitation.getSentToEmail());
+
 			Context thymeleafContext = new Context();
 			thymeleafContext.setVariable("sentToName", inviteRequest.getSendToName());
-			thymeleafContext.setVariable("invitationLink", INVITATION_LINK);
+			thymeleafContext.setVariable("invitationLink", invitationLink);
 			String emailContent = templateEngine.process("HotelEmailTemplate", thymeleafContext);
 
 			savedInvitation.setMessage(emailContent);
-			savedInvitation.setInvitationUrl(INVITATION_LINK);
+			savedInvitation.setInvitationUrl(invitationLink);
 			savedInvitation.setTitle(INVITATION_SUBJECT);
 			savedInvitation = invitationDetailsRepo.save(savedInvitation);
 
