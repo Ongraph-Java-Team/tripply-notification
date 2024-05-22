@@ -1,5 +1,6 @@
 package com.notification.service.impl;
 
+import com.notification.constant.enums.InvitationCategory;
 import com.notification.document.InvitationDetails;
 import com.notification.exception.BadRequestException;
 import com.notification.exception.RecordNotFoundException;
@@ -121,6 +122,7 @@ public class NotificationServiceImpl implements NotificationService {
 		invitationDetails.setSentToEmail(inviteRequest.getSentToEmail());
 		invitationDetails.setHotelRequest(inviteRequest.getHotelRequestBean());
 		invitationDetails.setCreatedOn(LocalDateTime.now());
+		invitationDetails.setCategory(InvitationCategory.HOTEL.name());
 		invitationDetails.setCreatedBy("Super Admin");
 		invitationDetails.setStatus(Status.PENDING);
 
