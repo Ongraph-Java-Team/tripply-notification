@@ -122,7 +122,6 @@ public class NotificationServiceImpl implements NotificationService {
 		invitationDetails.setSentToEmail(inviteRequest.getSentToEmail());
 		invitationDetails.setHotelRequest(inviteRequest.getHotelRequestBean());
 		invitationDetails.setCreatedOn(LocalDateTime.now());
-		invitationDetails.setCategory(InvitationCategory.HOTEL.name());
 		invitationDetails.setCreatedBy("Super Admin");
 		invitationDetails.setStatus(Status.PENDING);
 
