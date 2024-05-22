@@ -1,5 +1,6 @@
 package com.notification.service.impl;
 
+import com.notification.constant.enums.InvitationCategory;
 import com.notification.document.InvitationDetails;
 import com.notification.exception.BadRequestException;
 import com.notification.exception.RecordNotFoundException;
@@ -80,7 +81,7 @@ public class NotificationServiceImpl implements NotificationService {
 	public ResponseModel<Page<InviteResponse>> getAllPendingInvitations(String category, String status, int pageNo, int pageSize,
 			String sortBy) {
 		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy)); // Adjust for 0-based indexing
-		Page<InvitationDetails> detailsPage = invitationDetailsRepo.findAllByCategory(pageable, category);
+		Page<InvitationDetails> detailsPage = invitationDetailsRepo.findAllByCategoryAndStatus(pageable, category, Status.fromValue(status));
 		List<InviteResponse> invitations = detailsPage.getContent().stream().map(this::mapToInviteResponse).toList();
 		Page<InviteResponse> details = new PageImpl<>(invitations, pageable, detailsPage.getTotalElements());
 		ResponseModel<Page<InviteResponse>> response = new ResponseModel<>();
