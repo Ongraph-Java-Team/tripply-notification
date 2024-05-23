@@ -1,6 +1,5 @@
 package com.notification.service.impl;
 
-import com.notification.constant.enums.InvitationCategory;
 import com.notification.document.InvitationDetails;
 import com.notification.exception.BadRequestException;
 import com.notification.exception.RecordNotFoundException;
@@ -135,7 +134,6 @@ public class NotificationServiceImpl implements NotificationService {
 			String invitationLink = String.format(INVITATION_LINK, domainUrl, savedInvitation.getId(), savedInvitation.getSentToEmail());
 
 			Context thymeleafContext = new Context();
-			thymeleafContext.setVariable("sentToName", inviteRequest.getSendToName());
 			thymeleafContext.setVariable("invitationLink", invitationLink);
 			String emailContent = templateEngine.process("HotelEmailTemplate", thymeleafContext);
 
