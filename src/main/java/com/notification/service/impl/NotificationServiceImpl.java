@@ -7,7 +7,6 @@ import com.notification.helper.EmailSenderHelper;
 import com.notification.model.ResponseModel;
 import com.notification.model.Status;
 import com.notification.model.request.InviteRequest;
-import com.notification.model.request.StatusUpdateRequest;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
@@ -104,13 +103,16 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	public ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, StatusUpdateRequest statusUpdateRequest) {
+	public ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, String status) {
 		ResponseModel<InvitationStatusResponse> response = new ResponseModel<>();
 		InvitationDetails details = invitationDetailsRepo.findById(invitationId).orElseThrow(
 				() -> new RecordNotFoundException("Invitation details not found for id: "+invitationId)
 		);
 		InvitationStatusResponse invitationStatusResponse = new InvitationStatusResponse();
-		details.setStatus(Status.fromValue(statusUpdateRequest.getStatus()));
+		if(details.getStatus() == Status.fromValue(status))
+			throw new BadRequestException("Status is already set to: " + details.getStatus());
+
+		details.setStatus(Status.fromValue(status));
 		InvitationDetails updatedInvitation;
 		try {
 			updatedInvitation = invitationDetailsRepo.save(details);

@@ -3,7 +3,6 @@ package com.notification.service;
 import com.notification.document.InvitationDetails;
 import com.notification.model.ResponseModel;
 import com.notification.model.request.InviteRequest;
-import com.notification.model.request.StatusUpdateRequest;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
@@ -20,5 +19,5 @@ public interface NotificationService {
 
     ResponseModel<InvitationDetails> getInvitationByEmail(String sentToEmail);
 
-    ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, StatusUpdateRequest statusUpdateRequest);
+    ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, String status);
 }

@@ -3,7 +3,6 @@ package com.notification.controller;
 import com.notification.document.InvitationDetails;
 import com.notification.model.ResponseModel;
 import com.notification.model.request.InviteRequest;
-import com.notification.model.request.StatusUpdateRequest;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
@@ -61,13 +60,13 @@ public class NotificationController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping(value = "/invitation/{invitationId}/status", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/invitation/status/{invitationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseModel<InvitationStatusResponse>> updateStatus(
             @PathVariable("invitationId") ObjectId invitationId,
-            @RequestBody StatusUpdateRequest statusUpdateRequest
+            @RequestParam(value = "status") String status
             ) {
         log.info("Endpoint: /put update status triggered with invitationId: {}", invitationId);
-        ResponseModel<InvitationStatusResponse> response = notificationService.updateInviteeStatus(invitationId,  statusUpdateRequest);
+        ResponseModel<InvitationStatusResponse> response = notificationService.updateInviteeStatus(invitationId,  status);
         log.info("Endpoint: /put update status ends with update status: {}", response.getStatus());
         return ResponseEntity.ok(response);
     }
