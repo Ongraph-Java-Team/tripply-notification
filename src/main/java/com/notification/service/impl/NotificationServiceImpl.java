@@ -8,6 +8,7 @@ import com.notification.model.ResponseModel;
 import com.notification.model.Status;
 import com.notification.model.request.InviteRequest;
 import com.notification.model.response.InvitationDetailResponse;
+import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.repo.InvitationDetailsRepo;
 import com.notification.service.NotificationService;
@@ -98,6 +99,31 @@ public class NotificationServiceImpl implements NotificationService {
 		response.setData(invitations);
 		response.setMessage("Invitation details retrieved successfully");
 		response.setStatus(HttpStatus.OK);
+		return response;
+	}
+
+	@Override
+	public ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, String status) {
+		ResponseModel<InvitationStatusResponse> response = new ResponseModel<>();
+		InvitationDetails details = invitationDetailsRepo.findById(invitationId).orElseThrow(
+				() -> new RecordNotFoundException("Invitation details not found for id: "+invitationId)
+		);
+		InvitationStatusResponse invitationStatusResponse = new InvitationStatusResponse();
+		if(details.getStatus() == Status.fromValue(status))
+			throw new BadRequestException("Status is already set to: " + details.getStatus());
+
+		details.setStatus(Status.fromValue(status));
+		InvitationDetails updatedInvitation;
+		try {
+			updatedInvitation = invitationDetailsRepo.save(details);
+		} catch (Exception e) {
+			throw new BadRequestException("Exception occurred while updating the status");
+		}
+		invitationStatusResponse.setUpdatedStatus(updatedInvitation.getStatus());
+		invitationStatusResponse.setMessage("Status is successfully updated to: "+updatedInvitation.getStatus().getValue());
+		response.setData(invitationStatusResponse);
+		response.setStatus(HttpStatus.OK);
+		response.setMessage("Status updated successfully");
 		return response;
 	}
 

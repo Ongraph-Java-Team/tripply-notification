@@ -3,8 +3,8 @@ package com.notification.service;
 import com.notification.document.InvitationDetails;
 import com.notification.model.ResponseModel;
 import com.notification.model.request.InviteRequest;
-import com.notification.model.response.CustomInvitationResponse;
 import com.notification.model.response.InvitationDetailResponse;
+import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
@@ -19,4 +19,5 @@ public interface NotificationService {
 
     ResponseModel<InvitationDetails> getInvitationByEmail(String sentToEmail);
 
+    ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, String status);
 }
