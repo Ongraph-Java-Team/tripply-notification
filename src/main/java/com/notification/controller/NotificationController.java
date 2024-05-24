@@ -3,8 +3,9 @@ package com.notification.controller;
 import com.notification.document.InvitationDetails;
 import com.notification.model.ResponseModel;
 import com.notification.model.request.InviteRequest;
-import com.notification.model.response.CustomInvitationResponse;
+import com.notification.model.request.StatusUpdateRequest;
 import com.notification.model.response.InvitationDetailResponse;
+import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,17 @@ public class NotificationController {
                 category, status, pageNo, pageSize, sortBy);
         ResponseModel<Page<InviteResponse>> response = notificationService.getAllPendingInvitations(category, status, pageNo, pageSize, sortBy);
         log.info("Fetched pending invitations.");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(value = "/invitation/{invitationId}/status", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseModel<InvitationStatusResponse>> updateStatus(
+            @PathVariable("invitationId") ObjectId invitationId,
+            @RequestBody StatusUpdateRequest statusUpdateRequest
+            ) {
+        log.info("Endpoint: /put update status triggered with invitationId: {}", invitationId);
+        ResponseModel<InvitationStatusResponse> response = notificationService.updateInviteeStatus(invitationId,  statusUpdateRequest);
+        log.info("Endpoint: /put update status ends with update status: {}", response.getStatus());
         return ResponseEntity.ok(response);
     }
 }
