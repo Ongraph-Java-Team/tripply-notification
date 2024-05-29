@@ -25,3 +25,5 @@ server:
 application:
   ui:
     base-url: http://localhost:3000
+  auth:
+    base-url: http://localhost:8082

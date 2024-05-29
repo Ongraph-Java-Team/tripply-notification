@@ -20,4 +20,6 @@ public interface NotificationService {
     ResponseModel<InvitationDetails> getInvitationByEmail(String sentToEmail);
 
     ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, String status);
+
+    void sendRegistrationMail(InviteRequest inviteRequest);
 }

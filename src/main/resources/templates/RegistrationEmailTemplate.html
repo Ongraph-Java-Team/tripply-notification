@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Registration Confirmation</title>
+    <style>
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">Registration Confirmation</div>
+    <div class="content">
+        Dear <span th:text="${name}">User</span>,
+        <br/><br/>
+        Thank you for registering with us. Please click the button below to confirm your registration:
+    </div>
+    <div>
+        <a th:href="@{${confirmationLink}}" style="text-decoration:none;">
+            <button style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer;">Confirm Registration</button>
+        </a>
+    </div>
+    <br/>
+    <div class="content">
+        If you did not register for this account, please ignore this email.
+        <br/><br/>
+        Best regards,<br/>
+        Tripply
+    </div>
+</div>
+</body>
+</html>
