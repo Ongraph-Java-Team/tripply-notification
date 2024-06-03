@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (isTokenAvailable(authHeader)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -80,5 +80,11 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
 
+    }
+
+    private static boolean isTokenAvailable(String authHeader) {
+        return authHeader == null || !authHeader.startsWith("Bearer ")
+                || authHeader.substring(7).trim().isEmpty() ||
+                "null".equals(authHeader.substring(7).trim());
     }
 }
