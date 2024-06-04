@@ -1,15 +1,19 @@
 package com.notification.service.impl;
 
 import com.notification.document.InvitationDetails;
+import com.notification.document.PasswordResetTokenDetails;
 import com.notification.exception.BadRequestException;
 import com.notification.exception.RecordNotFoundException;
 import com.notification.helper.EmailSenderHelper;
 import com.notification.model.ResponseModel;
 import com.notification.model.Status;
 import com.notification.model.request.InviteRequest;
+import com.notification.model.request.PasswordResetTokenRequest;
 import com.notification.model.response.InvitationDetailResponse;
+import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.repo.InvitationDetailsRepo;
+import com.notification.repo.PasswordResetTokenDetailsRepository;
 import com.notification.service.NotificationService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +27,7 @@ import org.thymeleaf.context.Context;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.notification.constant.NotificationConstant.INVITATION_LINK;
-import static com.notification.constant.NotificationConstant.INVITATION_SUBJECT;
+import static com.notification.constant.NotificationConstant.*;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -33,12 +36,18 @@ public class NotificationServiceImpl implements NotificationService {
 	private InvitationDetailsRepo invitationDetailsRepo;
 
 	@Autowired
+	PasswordResetTokenDetailsRepository passwordResetTokenDetailsRepository;
+
+	@Autowired
 	private TemplateEngine templateEngine;
 	@Autowired
 	private EmailSenderHelper emailSenderHelper;
 
 	@Value("${spring.mail.username}")
 	private String fromMail;
+
+	@Value("${application.ui.base-url}")
+	private String domainUrl;
 
 	@Override
 	public ResponseModel<InviteResponse> sendHotelInvite(InviteRequest inviteRequest) {
@@ -77,7 +86,7 @@ public class NotificationServiceImpl implements NotificationService {
 	public ResponseModel<Page<InviteResponse>> getAllPendingInvitations(String category, String status, int pageNo, int pageSize,
 			String sortBy) {
 		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy)); // Adjust for 0-based indexing
-		Page<InvitationDetails> detailsPage = invitationDetailsRepo.findAllByCategory(pageable, category);
+		Page<InvitationDetails> detailsPage = invitationDetailsRepo.findAllByCategoryAndStatus(pageable, category, Status.fromValue(status));
 		List<InviteResponse> invitations = detailsPage.getContent().stream().map(this::mapToInviteResponse).toList();
 		Page<InviteResponse> details = new PageImpl<>(invitations, pageable, detailsPage.getTotalElements());
 		ResponseModel<Page<InviteResponse>> response = new ResponseModel<>();
@@ -95,6 +104,31 @@ public class NotificationServiceImpl implements NotificationService {
 		response.setData(invitations);
 		response.setMessage("Invitation details retrieved successfully");
 		response.setStatus(HttpStatus.OK);
+		return response;
+	}
+
+	@Override
+	public ResponseModel<InvitationStatusResponse> updateInviteeStatus(ObjectId invitationId, String status) {
+		ResponseModel<InvitationStatusResponse> response = new ResponseModel<>();
+		InvitationDetails details = invitationDetailsRepo.findById(invitationId).orElseThrow(
+				() -> new RecordNotFoundException("Invitation details not found for id: "+invitationId)
+		);
+		InvitationStatusResponse invitationStatusResponse = new InvitationStatusResponse();
+		if(details.getStatus() == Status.fromValue(status))
+			throw new BadRequestException("Status is already set to: " + details.getStatus());
+
+		details.setStatus(Status.fromValue(status));
+		InvitationDetails updatedInvitation;
+		try {
+			updatedInvitation = invitationDetailsRepo.save(details);
+		} catch (Exception e) {
+			throw new BadRequestException("Exception occurred while updating the status");
+		}
+		invitationStatusResponse.setUpdatedStatus(updatedInvitation.getStatus());
+		invitationStatusResponse.setMessage("Status is successfully updated to: "+updatedInvitation.getStatus().getValue());
+		response.setData(invitationStatusResponse);
+		response.setStatus(HttpStatus.OK);
+		response.setMessage("Status updated successfully");
 		return response;
 	}
 
@@ -128,13 +162,14 @@ public class NotificationServiceImpl implements NotificationService {
 		try {
 			savedInvitation = invitationDetailsRepo.save(invitationDetails);
 
+			String invitationLink = String.format(INVITATION_LINK, domainUrl, savedInvitation.getId(), savedInvitation.getSentToEmail());
+
 			Context thymeleafContext = new Context();
-			thymeleafContext.setVariable("sentToName", inviteRequest.getSendToName());
-			thymeleafContext.setVariable("invitationLink", INVITATION_LINK);
+			thymeleafContext.setVariable("invitationLink", invitationLink);
 			String emailContent = templateEngine.process("HotelEmailTemplate", thymeleafContext);
 
 			savedInvitation.setMessage(emailContent);
-			savedInvitation.setInvitationUrl(INVITATION_LINK);
+			savedInvitation.setInvitationUrl(invitationLink);
 			savedInvitation.setTitle(INVITATION_SUBJECT);
 			savedInvitation = invitationDetailsRepo.save(savedInvitation);
 
@@ -145,5 +180,39 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 
 		return savedInvitation;
+	}
+
+	@Override
+	public ResponseModel<String> sendPasswordResetLinkEmailToUser(PasswordResetTokenRequest passwordResetTokenRequest) {
+//		boolean emailExists = passwordResetTokenDetailsRepository.existsByUserEmail(passwordResetTokenRequest.getUser().getEmail());
+//		if (emailExists){
+//			throw new BadRequestException("This email " + passwordResetTokenRequest.getUser().getEmail() + " already exists in our system.");
+//		}
+		String fullName = passwordResetTokenRequest.getUser().getFirstName() + " " + passwordResetTokenRequest.getUser().getLastName();
+		String passwordResetLink = PASSWORD_RESET_LINK + passwordResetTokenRequest.getToken();
+
+
+		PasswordResetTokenDetails passwordResetTokenDetails = new PasswordResetTokenDetails();
+		passwordResetTokenDetails.setUserEmail(passwordResetTokenRequest.getUser().getEmail());
+		passwordResetTokenDetails.setToken(passwordResetTokenRequest.getToken());
+		passwordResetTokenDetails.setPasswordResetLink(passwordResetLink);
+
+		ResponseModel<String> response = new ResponseModel<>();
+		try {
+			passwordResetTokenDetailsRepository.save(passwordResetTokenDetails);
+			Context thymeleafContext = new Context();
+			thymeleafContext.setVariable("sentToName", fullName);
+			thymeleafContext.setVariable("passwordResetLink", passwordResetLink);
+			String emailContent = templateEngine.process("ResetPasswordTemplate", thymeleafContext);
+
+			String userEmail = passwordResetTokenRequest.getUser().getEmail();
+			emailSenderHelper.sendEmail(userEmail, PASSWORD_RESET_SUBJECT, emailContent);
+		}catch (Exception e) {
+			throw new BadRequestException("Exception occurred while sending email.");
+		}
+		response.setStatus(HttpStatus.OK);
+		response.setData(passwordResetTokenDetails.getUserEmail());
+		response.setMessage("Password Reset Email has been sent to your registered email address.");
+		return response;
 	}
 }

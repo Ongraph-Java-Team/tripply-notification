@@ -3,8 +3,9 @@ package com.notification.controller;
 import com.notification.document.InvitationDetails;
 import com.notification.model.ResponseModel;
 import com.notification.model.request.InviteRequest;
-import com.notification.model.response.CustomInvitationResponse;
+import com.notification.model.request.PasswordResetTokenRequest;
 import com.notification.model.response.InvitationDetailResponse;
+import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,6 +63,25 @@ public class NotificationController {
                 category, status, pageNo, pageSize, sortBy);
         ResponseModel<Page<InviteResponse>> response = notificationService.getAllPendingInvitations(category, status, pageNo, pageSize, sortBy);
         log.info("Fetched pending invitations.");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(value = "/invitation/status/{invitationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseModel<InvitationStatusResponse>> updateStatus(
+            @PathVariable("invitationId") ObjectId invitationId,
+            @RequestParam(value = "status") String status
+            ) {
+        log.info("Endpoint: /put update status triggered with invitationId: {}", invitationId);
+        ResponseModel<InvitationStatusResponse> response = notificationService.updateInviteeStatus(invitationId,  status);
+        log.info("Endpoint: /put update status ends with update status: {}", response.getStatus());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/forgot-password")
+    public ResponseEntity<ResponseModel<String>> sendPasswordResetLinkEmailToUser(@RequestBody PasswordResetTokenRequest passwordResetTokenRequest){
+        log.info("Endpoint: /forgot-password triggered with user : {}" , passwordResetTokenRequest.getUser().getEmail() );
+        ResponseModel<String> response = notificationService.sendPasswordResetLinkEmailToUser(passwordResetTokenRequest);
+        log.info("Endpoint: /forgot-password ends with user : {}" , passwordResetTokenRequest.getUser().getEmail() );
         return ResponseEntity.ok(response);
     }
 }
