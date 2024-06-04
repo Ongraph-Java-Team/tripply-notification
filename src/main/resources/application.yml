@@ -10,7 +10,7 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: xyz@ongraph.com
+    username: abc@ongraph.com
     password: lzfz ywke xoms ajge
     properties:
       mail:
@@ -24,8 +24,6 @@ server:
     context-path: /notification
 
 application:
-  ui:
-    base-url: http://localhost:3000
   notification:
     base-url: http://localhost:8087
   booking:
@@ -35,25 +33,13 @@ application:
   ui:
     base-url: http://localhost:3000
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    hostname: localhost
-
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    hostname: localhost
-
-
-
 #swagger-url: http://localhost:8087/notification/swagger-ui/index.html
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: localhost
