@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,6 +41,20 @@ public class NotificationExceptionHandler {
                 .errorDesc(ex.getMessage())
                 .build()));
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ResponseModel<String>> handleNoResourceFoundException(NoResourceFoundException ex) {
+        log.error("NoResourceFoundException handled with message: ", ex);
+        ResponseModel<String> errorResponse = new ResponseModel<>();
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST);
+        errorResponse.setTimestamp(LocalDateTime.now());
+        errorResponse.setErrors(List.of(ErrorDetails.builder()
+                .errorCode(ErrorConstant.ER004.getErrorCode())
+                .errorDesc(ErrorConstant.ER004.getErrorDescription())
+                .build()));
+        errorResponse.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
