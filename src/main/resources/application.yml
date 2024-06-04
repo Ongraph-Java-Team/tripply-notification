@@ -1,6 +1,7 @@
 spring:
   application:
     name: notification
+    version: 1.0
   data:
     mongodb:
       host: localhost
@@ -9,7 +10,7 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: xyz@ongraph.com
+    username: abc@ongraph.com
     password: lzfz ywke xoms ajge
     properties:
       mail:
@@ -23,8 +24,16 @@ server:
     context-path: /notification
 
 application:
+  notification:
+    base-url: http://localhost:8087
+  booking:
+    base-url: http://localhost:8085
+  auth:
+    base-url: http://localhost:8082
   ui:
     base-url: http://localhost:3000
+
+#swagger-url: http://localhost:8087/notification/swagger-ui/index.html
 
 eureka:
   client:
