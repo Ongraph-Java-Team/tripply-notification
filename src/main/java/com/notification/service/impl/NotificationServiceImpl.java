@@ -135,8 +135,8 @@ public class NotificationServiceImpl implements NotificationService {
 		try {
 			String confirmationLink = String.format(CONFIRMATION_LINK, authBaseUrl, inviteRequest.getSentToEmail());
 			Context thymeleafContext = new Context();
-			thymeleafContext.setVariable("confirmationLink", confirmationLink);
-			thymeleafContext.setVariable("name", inviteRequest.getSendToName());
+			thymeleafContext.setVariable(CONFIRMATION, confirmationLink);
+			thymeleafContext.setVariable(NAME, inviteRequest.getSendToName());
 			String emailContent = templateEngine.process("RegistrationEmailTemplate", thymeleafContext);
 			emailSenderHelper.sendEmail(inviteRequest.getSentToEmail(), CONFIRMATION_SUBJECT, emailContent);
 		} catch (Exception e) {
