@@ -1,16 +1,19 @@
 package com.notification.service.impl;
 
 import com.notification.document.InvitationDetails;
+import com.notification.document.PasswordResetTokenDetails;
 import com.notification.exception.BadRequestException;
 import com.notification.exception.RecordNotFoundException;
 import com.notification.helper.EmailSenderHelper;
 import com.notification.model.ResponseModel;
 import com.notification.model.Status;
 import com.notification.model.request.InviteRequest;
+import com.notification.model.request.PasswordResetTokenRequest;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
 import com.notification.repo.InvitationDetailsRepo;
+import com.notification.repo.PasswordResetTokenDetailsRepository;
 import com.notification.service.NotificationService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +25,19 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
-import static com.notification.constant.NotificationConstant.INVITATION_LINK;
-import static com.notification.constant.NotificationConstant.INVITATION_SUBJECT;
+import static com.notification.constant.NotificationConstant.*;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
 	@Autowired
 	private InvitationDetailsRepo invitationDetailsRepo;
+
+	@Autowired
+	PasswordResetTokenDetailsRepository passwordResetTokenDetailsRepository;
 
 	@Autowired
 	private TemplateEngine templateEngine;
@@ -43,6 +49,9 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Value("${application.ui.base-url}")
 	private String domainUrl;
+
+	@Value("${application.auth.base-url}")
+	public String baseAuthUrl;
 
 	@Override
 	public ResponseModel<InviteResponse> sendHotelInvite(InviteRequest inviteRequest) {
@@ -175,5 +184,36 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 
 		return savedInvitation;
+	}
+
+	@Override
+	public ResponseModel<String> sendPasswordResetLinkEmailToUser(PasswordResetTokenRequest passwordResetTokenRequest) {
+		final String FULL_NAME = passwordResetTokenRequest.getSendToName();
+		String passwordResetLink = baseAuthUrl + PASSWORD_RESET_LINK + passwordResetTokenRequest.getToken();
+
+
+		PasswordResetTokenDetails passwordResetTokenDetails = new PasswordResetTokenDetails();
+		passwordResetTokenDetails.setSendToEmail(passwordResetTokenRequest.getSendToEmail());
+		passwordResetTokenDetails.setToken(passwordResetTokenRequest.getToken());
+		passwordResetTokenDetails.setPasswordResetLink(passwordResetLink);
+		passwordResetTokenDetails.setCreatedOn(new Date());
+
+		ResponseModel<String> response = new ResponseModel<>();
+		try {
+			passwordResetTokenDetailsRepository.save(passwordResetTokenDetails);
+			Context thymeleafContext = new Context();
+			thymeleafContext.setVariable("sentToName", FULL_NAME);
+			thymeleafContext.setVariable("passwordResetLink", passwordResetLink);
+			String emailContent = templateEngine.process("ResetPasswordTemplate", thymeleafContext);
+
+			String userEmail = passwordResetTokenRequest.getSendToEmail();
+			emailSenderHelper.sendEmail(userEmail, PASSWORD_RESET_SUBJECT, emailContent);
+		}catch (Exception e) {
+			throw new BadRequestException("Exception occurred while sending email.");
+		}
+		response.setStatus(HttpStatus.OK);
+		response.setData(passwordResetTokenDetails.getSendToEmail());
+		response.setMessage("Password Reset Email has been sent to your registered email address.");
+		return response;
 	}
 }

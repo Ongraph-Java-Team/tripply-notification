@@ -3,6 +3,7 @@ package com.notification.controller;
 import com.notification.document.InvitationDetails;
 import com.notification.model.ResponseModel;
 import com.notification.model.request.InviteRequest;
+import com.notification.model.request.PasswordResetTokenRequest;
 import com.notification.model.response.InvitationDetailResponse;
 import com.notification.model.response.InvitationStatusResponse;
 import com.notification.model.response.InviteResponse;
@@ -73,6 +74,14 @@ public class NotificationController {
         log.info("Endpoint: /put update status triggered with invitationId: {}", invitationId);
         ResponseModel<InvitationStatusResponse> response = notificationService.updateInviteeStatus(invitationId,  status);
         log.info("Endpoint: /put update status ends with update status: {}", response.getStatus());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/forgot-password")
+    public ResponseEntity<ResponseModel<String>> sendPasswordResetLinkEmailToUser(@RequestBody PasswordResetTokenRequest passwordResetTokenRequest){
+        log.info("Endpoint: /forgot-password triggered with user : {}" , passwordResetTokenRequest.getSendToEmail());
+        ResponseModel<String> response = notificationService.sendPasswordResetLinkEmailToUser(passwordResetTokenRequest);
+        log.info("Endpoint: /forgot-password ends with user : {}" , passwordResetTokenRequest.getSendToEmail());
         return ResponseEntity.ok(response);
     }
 }

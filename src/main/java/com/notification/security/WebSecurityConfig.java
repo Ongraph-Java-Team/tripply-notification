@@ -20,7 +20,9 @@ public class WebSecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
-    private static final String[] whiteListAPI = null;
+    private static final String[] whiteListAPI = {
+            "/forgot-password"
+    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
