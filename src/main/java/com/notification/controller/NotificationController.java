@@ -79,9 +79,9 @@ public class NotificationController {
 
     @PostMapping(value = "/forgot-password")
     public ResponseEntity<ResponseModel<String>> sendPasswordResetLinkEmailToUser(@RequestBody PasswordResetTokenRequest passwordResetTokenRequest){
-        log.info("Endpoint: /forgot-password triggered with user : {}" , passwordResetTokenRequest.getUser().getEmail() );
+        log.info("Endpoint: /forgot-password triggered with user : {}" , passwordResetTokenRequest.getSendToEmail());
         ResponseModel<String> response = notificationService.sendPasswordResetLinkEmailToUser(passwordResetTokenRequest);
-        log.info("Endpoint: /forgot-password ends with user : {}" , passwordResetTokenRequest.getUser().getEmail() );
+        log.info("Endpoint: /forgot-password ends with user : {}" , passwordResetTokenRequest.getSendToEmail());
         return ResponseEntity.ok(response);
     }
 }

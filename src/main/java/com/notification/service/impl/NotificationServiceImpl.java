@@ -25,6 +25,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import static com.notification.constant.NotificationConstant.*;
@@ -48,6 +49,9 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Value("${application.ui.base-url}")
 	private String domainUrl;
+
+	@Value("${application.auth.base-url}")
+	public String baseAuthUrl;
 
 	@Override
 	public ResponseModel<InviteResponse> sendHotelInvite(InviteRequest inviteRequest) {
@@ -184,34 +188,31 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	public ResponseModel<String> sendPasswordResetLinkEmailToUser(PasswordResetTokenRequest passwordResetTokenRequest) {
-//		boolean emailExists = passwordResetTokenDetailsRepository.existsByUserEmail(passwordResetTokenRequest.getUser().getEmail());
-//		if (emailExists){
-//			throw new BadRequestException("This email " + passwordResetTokenRequest.getUser().getEmail() + " already exists in our system.");
-//		}
-		String fullName = passwordResetTokenRequest.getUser().getFirstName() + " " + passwordResetTokenRequest.getUser().getLastName();
-		String passwordResetLink = PASSWORD_RESET_LINK + passwordResetTokenRequest.getToken();
+		final String FULL_NAME = passwordResetTokenRequest.getSendToName();
+		String passwordResetLink = baseAuthUrl + PASSWORD_RESET_LINK + passwordResetTokenRequest.getToken();
 
 
 		PasswordResetTokenDetails passwordResetTokenDetails = new PasswordResetTokenDetails();
-		passwordResetTokenDetails.setUserEmail(passwordResetTokenRequest.getUser().getEmail());
+		passwordResetTokenDetails.setSendToEmail(passwordResetTokenRequest.getSendToEmail());
 		passwordResetTokenDetails.setToken(passwordResetTokenRequest.getToken());
 		passwordResetTokenDetails.setPasswordResetLink(passwordResetLink);
+		passwordResetTokenDetails.setCreatedOn(new Date());
 
 		ResponseModel<String> response = new ResponseModel<>();
 		try {
 			passwordResetTokenDetailsRepository.save(passwordResetTokenDetails);
 			Context thymeleafContext = new Context();
-			thymeleafContext.setVariable("sentToName", fullName);
+			thymeleafContext.setVariable("sentToName", FULL_NAME);
 			thymeleafContext.setVariable("passwordResetLink", passwordResetLink);
 			String emailContent = templateEngine.process("ResetPasswordTemplate", thymeleafContext);
 
-			String userEmail = passwordResetTokenRequest.getUser().getEmail();
+			String userEmail = passwordResetTokenRequest.getSendToEmail();
 			emailSenderHelper.sendEmail(userEmail, PASSWORD_RESET_SUBJECT, emailContent);
 		}catch (Exception e) {
 			throw new BadRequestException("Exception occurred while sending email.");
 		}
 		response.setStatus(HttpStatus.OK);
-		response.setData(passwordResetTokenDetails.getUserEmail());
+		response.setData(passwordResetTokenDetails.getSendToEmail());
 		response.setMessage("Password Reset Email has been sent to your registered email address.");
 		return response;
 	}
