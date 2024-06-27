@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  notification-service:
+    image: notification-service:latest
+    container_name: notification-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_MONGO_HOST: mongo
+      SPRING_MONGO_PORT: 27017
+      SPRING_MONGO_DB: tripply
+      ADMIN_MAIL_USERNAME: jatin.suthar@ongraph.com
+      ADMIN_MAIL_PASSWORD: lzfz ywke xoms ajge
+    networks:
+      - tripply-network
+
+networks:
+  tripply-network:
+    external: true
