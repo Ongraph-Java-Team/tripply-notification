@@ -24,8 +24,7 @@ import org.thymeleaf.context.Context;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.notification.constant.NotificationConstant.INVITATION_LINK;
-import static com.notification.constant.NotificationConstant.INVITATION_SUBJECT;
+import static com.notification.constant.NotificationConstant.*;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -43,6 +42,9 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Value("${application.ui.base-url}")
 	private String domainUrl;
+
+	@Value("${application.auth.base-url}")
+	private String authBaseUrl;
 
 	@Override
 	public ResponseModel<InviteResponse> sendHotelInvite(InviteRequest inviteRequest) {
@@ -125,6 +127,21 @@ public class NotificationServiceImpl implements NotificationService {
 		response.setStatus(HttpStatus.OK);
 		response.setMessage("Status updated successfully");
 		return response;
+	}
+
+	@Override
+	public void sendRegistrationMail(InviteRequest inviteRequest) {
+
+		try {
+			String confirmationLink = String.format(CONFIRMATION_LINK, authBaseUrl, inviteRequest.getSentToEmail());
+			Context thymeleafContext = new Context();
+			thymeleafContext.setVariable(CONFIRMATION, confirmationLink);
+			thymeleafContext.setVariable(NAME, inviteRequest.getSendToName());
+			String emailContent = templateEngine.process("RegistrationEmailTemplate", thymeleafContext);
+			emailSenderHelper.sendEmail(inviteRequest.getSentToEmail(), CONFIRMATION_SUBJECT, emailContent);
+		} catch (Exception e) {
+			throw new BadRequestException("Exception occurred while sending email.");
+		}
 	}
 
 	public InviteResponse mapToInviteResponse(InvitationDetails invitationDetails) {

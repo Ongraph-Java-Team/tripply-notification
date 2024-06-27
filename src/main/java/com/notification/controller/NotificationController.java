@@ -75,4 +75,11 @@ public class NotificationController {
         log.info("Endpoint: /put update status ends with update status: {}", response.getStatus());
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping(value = "/send-registration-mail", produces = MediaType.APPLICATION_JSON_VALUE)
+    public void sendConfirmationMail(@RequestBody InviteRequest inviteRequest) {
+        log.info("Start Endpoint: /send-registration-mail triggered with user: {}", inviteRequest.getSentToEmail());
+        notificationService.sendRegistrationMail(inviteRequest);
+        log.info("End Endpoint: /send-registration-mail with user: {}", inviteRequest.getSentToEmail());
+    }
 }
